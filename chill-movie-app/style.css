@@ -1,0 +1,130 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family:
+    Segoe UI,
+    sans-serif;
+}
+body {
+  background: #141414;
+  color: #fff;
+}
+a {
+  text-decoration: none;
+  color: #fff;
+}
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url("https://images.unsplash.com/photo-1739433437953-25af9fa13cf8?q=80&w=1738&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")
+    center/cover;
+}
+.overlay {
+  background: rgba(0, 0, 0, 0.75);
+  padding: 40px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+}
+.logo {
+  color: aqua;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+input {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 8px;
+}
+.btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: aqua;
+  color: #fff;
+  margin-top: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.google {
+  background: #333;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 5%;
+  background: #000;
+}
+nav {
+  display: flex;
+  gap: 20px;
+}
+.hero {
+  height: 75vh;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.8)),
+    url("https://assets.promediateknologi.id/crop/0x0:0x0/1200x0/webp/photo/p3/75/2024/05/09/HD-wallpaper-the-avengers-avengers-endgame-avengers-avengers-endgame-3042865890.jpg") center/cover;
+  background-size: contain;
+  display: flex;
+  align-items: end;
+  padding: 60px 5%;
+}
+.hero-content {
+  max-width: 600px;
+}
+.hero h1 {
+  font-size: 3rem;
+}
+.hero-buttons button {
+  padding: 12px 20px;
+  margin-right: 10px;
+  margin-top: 15px;
+}
+
+.volume-container{
+  padding-top: 10px;
+}
+.section {
+  padding: 30px 5%;
+  background: url("https://images.unsplash.com/photo-1576845304705-e95150fec467?q=80&w=1548&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+}
+.movies {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+}
+.card {
+  height: 250px;
+  background: #222;
+  border-radius: 12px;
+  display: flex;
+  align-items: end;
+  padding: 15px;
+  font-weight: bold;
+}
+footer {
+  padding: 40px 5%;
+  background: #000;
+  margin-top: 30px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+@media (max-width: 768px) {
+  nav {
+    display: none;
+  }
+  .hero h1 {
+    font-size: 2rem;
+  }
+}
