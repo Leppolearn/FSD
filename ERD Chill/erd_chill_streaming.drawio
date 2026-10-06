@@ -1,0 +1,96 @@
+<mxfile host="app.diagrams.net" modified="2026-10-01T23:15:00.000Z" agent="Antigravity" version="24.0.0" type="device">
+  <diagram id="chill-streaming-erd" name="ERD Chill Streaming (FSD-20)">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TABEL: users -->
+        <mxCell id="tbl_users" value="users (User)&#xa;-----------------------------------------&#xa;PK  id : BIGINT UNSIGNED&#xa;UK  username : VARCHAR(50)&#xa;UK  email : VARCHAR(100)&#xa;    password_hash : CHAR(60)&#xa;UK  google_id : VARCHAR(64)&#xa;    avatar_url : VARCHAR(255)&#xa;    is_premium : TINYINT UNSIGNED&#xa;    premium_until : DATETIME&#xa;    created_at : TIMESTAMP&#xa;    updated_at : TIMESTAMP" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="310" height="215" as="geometry" />
+        </mxCell>
+
+        <!-- TABEL: packages -->
+        <mxCell id="tbl_packages" value="packages (Paket)&#xa;-----------------------------------------&#xa;PK  id : TINYINT UNSIGNED&#xa;UK  package_name : VARCHAR(50)&#xa;    price : DECIMAL(10,2)&#xa;    duration_days : SMALLINT UNSIGNED&#xa;    min_accounts : TINYINT UNSIGNED&#xa;    max_accounts : TINYINT UNSIGNED&#xa;    max_resolution : VARCHAR(20)&#xa;    has_no_ads : TINYINT UNSIGNED&#xa;    can_download : TINYINT UNSIGNED&#xa;    is_active : TINYINT UNSIGNED&#xa;    created_at : TIMESTAMP&#xa;    updated_at : TIMESTAMP" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="360" width="310" height="245" as="geometry" />
+        </mxCell>
+
+        <!-- TABEL: orders -->
+        <mxCell id="tbl_orders" value="orders (Order)&#xa;-----------------------------------------&#xa;PK  id : BIGINT UNSIGNED&#xa;UK  invoice_number : CHAR(20)&#xa;FK  user_id : BIGINT UNSIGNED&#xa;FK  package_id : TINYINT UNSIGNED&#xa;    voucher_code : VARCHAR(30)&#xa;    base_price : DECIMAL(10,2)&#xa;    discount_amount : DECIMAL(10,2)&#xa;    admin_fee : DECIMAL(10,2)&#xa;    total_amount : DECIMAL(10,2)&#xa;    order_status : ENUM(...)&#xa;    expired_at : DATETIME&#xa;    created_at : TIMESTAMP&#xa;    updated_at : TIMESTAMP" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="480" y="210" width="310" height="260" as="geometry" />
+        </mxCell>
+
+        <!-- TABEL: payments -->
+        <mxCell id="tbl_payments" value="payments (Pembayaran)&#xa;-----------------------------------------&#xa;PK  id : BIGINT UNSIGNED&#xa;FK  order_id : BIGINT UNSIGNED&#xa;    payment_method : VARCHAR(50)&#xa;UK  payment_code : VARCHAR(32)&#xa;    amount_paid : DECIMAL(10,2)&#xa;    payment_status : ENUM(...)&#xa;    paid_at : DATETIME&#xa;    created_at : TIMESTAMP&#xa;    updated_at : TIMESTAMP" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="480" y="530" width="310" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- TABEL: my_lists -->
+        <mxCell id="tbl_my_lists" value="my_lists (Daftar Saya)&#xa;-----------------------------------------&#xa;PK  id : BIGINT UNSIGNED&#xa;FK  user_id : BIGINT UNSIGNED&#xa;FK  series_film_id : INT UNSIGNED&#xa;    added_at : TIMESTAMP" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="480" y="60" width="310" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- TABEL: series_films -->
+        <mxCell id="tbl_series_films" value="series_films (Series/Film)&#xa;-----------------------------------------&#xa;PK  id : INT UNSIGNED&#xa;    title : VARCHAR(150)&#xa;UK  slug : VARCHAR(160)&#xa;    content_type : ENUM('film','series')&#xa;    synopsis : TEXT&#xa;    poster_portrait_url : VARCHAR(255)&#xa;    banner_landscape_url : VARCHAR(255)&#xa;    trailer_url : VARCHAR(255)&#xa;    release_year : YEAR&#xa;    age_rating : VARCHAR(10)&#xa;    rating_score : DECIMAL(2,1)&#xa;    cast_members : VARCHAR(255)&#xa;    filmmaker : VARCHAR(150)&#xa;    is_top_ten : TINYINT UNSIGNED&#xa;    is_new_episode : TINYINT UNSIGNED&#xa;    is_trending : TINYINT UNSIGNED&#xa;    is_premium_only : TINYINT UNSIGNED&#xa;    created_at : TIMESTAMP&#xa;    updated_at : TIMESTAMP" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="900" y="60" width="320" height="350" as="geometry" />
+        </mxCell>
+
+        <!-- TABEL: episode_movies -->
+        <mxCell id="tbl_episode_movies" value="episode_movies (Episode/Movie)&#xa;-----------------------------------------&#xa;PK  id : BIGINT UNSIGNED&#xa;FK  series_film_id : INT UNSIGNED&#xa;    season_number : TINYINT UNSIGNED&#xa;    episode_number : SMALLINT UNSIGNED&#xa;    episode_title : VARCHAR(150)&#xa;    episode_synopsis : TEXT&#xa;    duration_minutes : SMALLINT UNSIGNED&#xa;    thumbnail_url : VARCHAR(255)&#xa;    video_stream_url : VARCHAR(255)&#xa;    intro_end_sec : SMALLINT UNSIGNED&#xa;    release_date : DATE&#xa;    created_at : TIMESTAMP&#xa;    updated_at : TIMESTAMP" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="900" y="470" width="320" height="260" as="geometry" />
+        </mxCell>
+
+        <!-- TABEL: series_film_genres -->
+        <mxCell id="tbl_series_film_genres" value="series_film_genres (Junction)&#xa;-----------------------------------------&#xa;PK,FK  series_film_id : INT UNSIGNED&#xa;PK,FK  genre_id : SMALLINT UNSIGNED" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1310" y="120" width="290" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- TABEL: genres -->
+        <mxCell id="tbl_genres" value="genres (Genre)&#xa;-----------------------------------------&#xa;PK  id : SMALLINT UNSIGNED&#xa;UK  genre_name : VARCHAR(50)&#xa;UK  slug : VARCHAR(60)&#xa;    created_at : TIMESTAMP" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1310" y="300" width="290" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- RELASI: users (1) -> (N) orders -->
+        <mxCell id="rel_users_orders" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERmandOne;strokeWidth=2;" edge="1" parent="1" source="tbl_users" target="tbl_orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELASI: packages (1) -> (N) orders -->
+        <mxCell id="rel_packages_orders" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERmandOne;strokeWidth=2;" edge="1" parent="1" source="tbl_packages" target="tbl_orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELASI: orders (1) -> (N) payments -->
+        <mxCell id="rel_orders_payments" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERmandOne;strokeWidth=2;" edge="1" parent="1" source="tbl_orders" target="tbl_payments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELASI: users (1) -> (N) my_lists -->
+        <mxCell id="rel_users_my_lists" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERmandOne;strokeWidth=2;" edge="1" parent="1" source="tbl_users" target="tbl_my_lists">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELASI: series_films (1) -> (N) my_lists -->
+        <mxCell id="rel_series_my_lists" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERmandOne;strokeWidth=2;" edge="1" parent="1" source="tbl_series_films" target="tbl_my_lists">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELASI: series_films (1) -> (N) episode_movies -->
+        <mxCell id="rel_series_episodes" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERmandOne;strokeWidth=2;" edge="1" parent="1" source="tbl_series_films" target="tbl_episode_movies">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELASI: series_films (1) -> (N) series_film_genres -->
+        <mxCell id="rel_series_sfg" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERmandOne;strokeWidth=2;" edge="1" parent="1" source="tbl_series_films" target="tbl_series_film_genres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELASI: genres (1) -> (N) series_film_genres -->
+        <mxCell id="rel_genres_sfg" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERmandOne;strokeWidth=2;" edge="1" parent="1" source="tbl_genres" target="tbl_series_film_genres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
