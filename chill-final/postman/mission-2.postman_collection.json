@@ -1,0 +1,90 @@
+{
+  "info": {
+    "name": "CHILL Movie API - Mission 2",
+    "description": "CRUD integration checks for movies and series. Run requests in order; POST requests store IDs for the following GET, PATCH, and DELETE requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Movies",
+      "item": [
+        {
+          "name": "GET all movies",
+          "request": { "method": "GET", "url": "{{baseUrl}}/movies" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 200', () => pm.response.to.have.status(200));", "pm.test('returns a JSON array', () => pm.expect(pm.response.json()).to.be.an('array'));"] } }]
+        },
+        {
+          "name": "POST create movie",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Test Movie\",\n  \"year\": 2025,\n  \"genre\": \"Drama\",\n  \"rating\": 8.1,\n  \"duration\": \"1j 40m\",\n  \"poster\": \"/media/test-movie.jpg\",\n  \"desc\": \"Data untuk pengujian CRUD Postman.\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/movies"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 201', () => pm.response.to.have.status(201));", "const movie = pm.response.json();", "pm.expect(movie.id).to.exist;", "pm.collectionVariables.set('movieId', movie.id);"] } }]
+        },
+        {
+          "name": "GET movie by ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/movies/{{movieId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 200', () => pm.response.to.have.status(200));", "pm.test('returns the created movie', () => pm.expect(pm.response.json().title).to.eql('Postman Test Movie'));"] } }]
+        },
+        {
+          "name": "PATCH update movie",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"rating\": 9\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/movies/{{movieId}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 200', () => pm.response.to.have.status(200));", "pm.test('rating was updated', () => pm.expect(pm.response.json().rating).to.eql(9));"] } }]
+        },
+        {
+          "name": "DELETE movie",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/movies/{{movieId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 200', () => pm.response.to.have.status(200));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Series",
+      "item": [
+        {
+          "name": "GET all series",
+          "request": { "method": "GET", "url": "{{baseUrl}}/series" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 200', () => pm.response.to.have.status(200));", "pm.test('returns a JSON array', () => pm.expect(pm.response.json()).to.be.an('array'));"] } }]
+        },
+        {
+          "name": "POST create series",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Test Series\",\n  \"year\": 2025,\n  \"genre\": \"Mystery\",\n  \"rating\": 8.3,\n  \"duration\": \"8 Episode\",\n  \"poster\": \"/media/test-series.jpg\",\n  \"desc\": \"Data untuk pengujian CRUD Postman.\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/series"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 201', () => pm.response.to.have.status(201));", "const series = pm.response.json();", "pm.expect(series.id).to.exist;", "pm.collectionVariables.set('seriesId', series.id);"] } }]
+        },
+        {
+          "name": "GET series by ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/series/{{seriesId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 200', () => pm.response.to.have.status(200));", "pm.test('returns the created series', () => pm.expect(pm.response.json().title).to.eql('Postman Test Series'));"] } }]
+        },
+        {
+          "name": "PATCH update series",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"rating\": 9\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/series/{{seriesId}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 200', () => pm.response.to.have.status(200));", "pm.test('rating was updated', () => pm.expect(pm.response.json().rating).to.eql(9));"] } }]
+        },
+        {
+          "name": "DELETE series",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/series/{{seriesId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('returns 200', () => pm.response.to.have.status(200));"] } }]
+        }
+      ]
+    }
+  ],
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:5000/api/v1" }, { "key": "movieId", "value": "" }, { "key": "seriesId", "value": "" }]
+}

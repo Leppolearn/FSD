@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/movies"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "Postman Test Movie",
+      "year": 2025,
+      "genre": "Drama",
+      "rating": 8.1,
+      "duration": "1j 40m",
+      "poster": "/media/test-movie.jpg",
+      "desc": "Data untuk pengujian CRUD Postman."
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('returns 201', () => pm.response.to.have.status(201));
+      const movie = pm.response.json();
+      pm.test('response has an id', () => {
+        pm.expect(movie.id).to.exist;
+        pm.collectionVariables.set('movieId', movie.id);
+      });
+    language: text/javascript
+order: 2000

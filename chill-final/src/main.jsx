@@ -1,13 +1,37 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import store from "../store/redux/store.js";
+import {
+  setMovies as setMoviesRedux,
+  addMovie as addMovieRedux,
+  updateMovie as updateMovieRedux,
+  deleteMovie as deleteMovieRedux
+} from "../store/redux/movieSlice.js";
+import ListView from "./ListView.jsx";
 import {
   Clapperboard, Search, ChevronLeft, ChevronRight, Play, Plus,
   Pencil, Trash2, X, Star, Clock3, Heart, Bookmark, LogOut, UserCircle2,
-  Eye, EyeOff, Check, MoreHorizontal, ChevronDown
+  Eye, EyeOff, Check, MoreHorizontal, ChevronDown, Database, RefreshCw
 } from "lucide-react";
 import "./styles.css";
 import loginBg from "./assets/login-bg.png";
 import registerBg from "./assets/register-bg.png";
+import {
+  getMovies,
+  getSeries,
+  createMovie,
+  createSeries,
+  updateMovie,
+  updateSeries,
+  deleteMovie,
+  deleteSeries,
+  seedInitialData,
+  getData,
+  addData,
+  editData,
+  deleteData
+} from "./services/api.js";
 
 const movieSeed = [
   {id:1,title:"The Tomorrow War",year:2021,genre:"Action",rating:8.2,duration:"2j 20m",poster:"/media/tomorrow.jpg",desc:"Seorang mantan tentara kembali ke medan perang untuk menghadapi ancaman dari masa depan."},
@@ -149,10 +173,22 @@ function DetailModal({item,onClose,onPlay}){
 }
 
 function Editor({item,onSave,onClose,type}){
-  const [form,setForm]=useState(item||{id:Date.now(),title:"",year:2025,genre:"Drama",rating:8,duration:type==="series"?"10 Episode":"2j 00m",poster:"/media/default.jpg",desc:""});
+  const [form,setForm]=useState(
+    item && !item.new
+      ? item
+      : {title:"",year:2025,genre:"Drama",rating:8,duration:type==="series"?"10 Episode":"2j 00m",poster:"/media/default.jpg",desc:""}
+  );
   const set=(k,v)=>setForm({...form,[k]:v});
-  return <div className="modal-bg"><form className="editor" onSubmit={e=>{e.preventDefault();onSave({...form,year:Number(form.year),rating:Number(form.rating)})}}>
-    <div className="editor-head"><div><span className="kicker">CONTENT MANAGEMENT</span><h2>{item?"Edit Konten":"Tambah Konten"}</h2></div><button type="button" className="close static" onClick={onClose}><X size={19}/></button></div>
+  return <div className="modal-bg"><form className="editor" onSubmit={e=>{
+    e.preventDefault();
+    onSave({
+      ...form,
+      year:Number(form.year) || 2025,
+      rating:Number(form.rating) || 8.0,
+      new: Boolean(item?.new || !form.id)
+    });
+  }}>
+    <div className="editor-head"><div><span className="kicker">CONTENT MANAGEMENT</span><h2>{item && !item.new?"Edit Konten":"Tambah Konten"}</h2></div><button type="button" className="close static" onClick={onClose}><X size={19}/></button></div>
     <div className="editor-grid">
       <label>Judul<input value={form.title} onChange={e=>set("title",e.target.value)} required/></label>
       <label>Tahun<input type="number" value={form.year} onChange={e=>set("year",e.target.value)}/></label>
@@ -169,11 +205,15 @@ function Editor({item,onSave,onClose,type}){
 function Footer(){return <footer><div className="footer-brand"><Logo/><small>© 2025 CHILL All Rights Reserved.</small></div><div className="footer-links"><div><b>Genre</b><span>Action</span><span>Anime</span><span>Drama</span><span>Horror</span></div><div><b>Film</b><span>Series</span><span>Korea</span><span>Romance</span></div><div><b>Komunitas</b><span>Favorit</span><span>Rating</span><span>Review</span></div><div><b>Bantuan</b><span>FAQ</span><span>Kontak Kami</span><span>Privacy</span></div></div></footer>}
 
 function App(){
+  const dispatch = useDispatch();
   const [logged,setLogged]=useState(false);
   const [user,setUser]=useState("");
   const [page,setPage]=useState("movie");
   const [movies,setMovies]=useState(movieSeed);
   const [series,setSeries]=useState(seriesSeed);
+  const [loading,setLoading]=useState(false);
+  const [apiConnected,setApiConnected]=useState(null);
+  const [syncing,setSyncing]=useState(false);
   const [query,setQuery]=useState("");
   const [selected,setSelected]=useState(null);
   const [editing,setEditing]=useState(null);
@@ -182,38 +222,177 @@ function App(){
   const [showManage,setShowManage]=useState(false);
   const [profileOpen,setProfileOpen]=useState(false);
 
+  // Ambil data dari MockAPI saat aplikasi pertama kali dimuat
+  const fetchData = async () => {
+    setLoading(true);
+    let hasData = false;
+
+    try {
+      // 1. Integrasi Get Data menggunakan getData dari services/api
+      const resMovies = await getData();
+      if (Array.isArray(resMovies) && resMovies.length > 0) {
+        setMovies(resMovies);
+        dispatch(setMoviesRedux(resMovies));
+        hasData = true;
+      }
+    } catch (e) {
+      console.warn("Gagal memuat film dari MockAPI, menggunakan data lokal:", e.message);
+    }
+
+    try {
+      const resSeries = await getSeries();
+      if (Array.isArray(resSeries) && resSeries.length > 0) {
+        setSeries(resSeries);
+        hasData = true;
+      }
+    } catch (e) {
+      console.warn("Gagal memuat series dari MockAPI, menggunakan data lokal:", e.message);
+    }
+
+    setApiConnected(hasData);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const isSavedPage=page==="saved";
-  const data=page==="movie"?movies:series;
-  const combined=[...movies,...series];
+  const reduxMovies = useSelector(state => state.movies || []);
+  const activeMovies = Array.isArray(reduxMovies) && reduxMovies.length > 0 ? reduxMovies : movies;
+  const data=page==="movie"?activeMovies:series;
+  const combined=[...activeMovies,...series];
   const setData=page==="movie"?setMovies:setSeries;
   const genres=["Semua",...Array.from(new Set(data.map(x=>x.genre)))];
   const [genre,setGenre]=useState("Semua");
   const filtered=useMemo(()=>data.filter(x=>(genre==="Semua"||x.genre===genre)&&x.title.toLowerCase().includes(query.toLowerCase())),[data,genre,query]);
-  const savedItems=useMemo(()=>combined.filter(x=>favorites.includes(x.id)&&x.title.toLowerCase().includes(query.toLowerCase())),[combined,favorites,query]);
+  const savedItems=useMemo(()=>combined.filter(x=>favorites.some(f=>String(f)===String(x.id))&&x.title.toLowerCase().includes(query.toLowerCase())),[combined,favorites,query]);
   const trending=filtered.slice(0,5);
   const top=filtered.slice().sort((a,b)=>b.rating-a.rating).slice(0,5);
   const releases=filtered.slice(5,10).length?filtered.slice(5,10):filtered.slice(0,5);
   const newOnes=filtered.slice().reverse().slice(0,5);
 
-  const notify=t=>{setToast(t);setTimeout(()=>setToast(""),1800)};
+  const notify=t=>{setToast(t);setTimeout(()=>setToast(""),2500)};
   const login=name=>{setUser(name);setLogged(true)};
-  const save=item=>{
-    if(isSavedPage){
-      const targetSeries=series.some(x=>x.id===item.id);
-      (targetSeries?setSeries:setMovies)(prev=>prev.some(x=>x.id===item.id)?prev.map(x=>x.id===item.id?item:x):[item,...prev]);
-    }else{
-      setData(prev=>prev.some(x=>x.id===item.id)?prev.map(x=>x.id===item.id?item:x):[item,...prev]);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    notify("Mengunggah data awal ke MockAPI...");
+    try {
+      const res = await seedInitialData(movieSeed, seriesSeed);
+      if (res.moviesAdded > 0 || res.seriesAdded > 0) {
+        notify(`Sukses: ${res.moviesAdded} film & ${res.seriesAdded} series diunggah ke MockAPI!`);
+        await fetchData();
+      } else {
+        notify("Gagal: pastikan resource /movies & /series telah dibuat di MockAPI.");
+      }
+    } catch (err) {
+      notify("Gagal upload: " + err.message);
+    } finally {
+      setSyncing(false);
     }
-    setEditing(null);notify("Data berhasil disimpan.")
   };
-  const remove=id=>{
-    if(isSavedPage){
-      if(series.some(x=>x.id===id)) setSeries(prev=>prev.filter(x=>x.id!==id));
-      else setMovies(prev=>prev.filter(x=>x.id!==id));
-    }else setData(prev=>prev.filter(x=>x.id!==id));
-    setSelected(null);notify("Data berhasil dihapus.")
+
+  const save=async (item)=>{
+    const isNew = Boolean(item.new || !item.id);
+    const isTargetSeries = isSavedPage
+      ? (series.some(x => String(x.id) === String(item.id)) || item.type === "series")
+      : (page === "series");
+
+    const payload = {
+      title: item.title,
+      year: Number(item.year) || 2025,
+      genre: item.genre,
+      rating: Number(item.rating) || 8.0,
+      duration: item.duration,
+      poster: item.poster || "/media/default.jpg",
+      desc: item.desc || ""
+    };
+
+    setEditing(null);
+    notify(isNew ? "Menyimpan ke MockAPI..." : "Memperbarui di MockAPI...");
+
+    try {
+      let savedItem;
+      if (isNew) {
+        // 2. Add: Gunakan fungsi Add API (addData) dari folder services/api
+        savedItem = isTargetSeries ? await createSeries(payload) : await addData(payload);
+        if (!isTargetSeries) {
+          dispatch(addMovieRedux(savedItem));
+        }
+        notify("Data baru berhasil ditambahkan!");
+      } else {
+        // 2. Edit: Gunakan fungsi Edit API (editData) dari folder services/api
+        savedItem = isTargetSeries ? await updateSeries(item.id, payload) : await editData(item.id, payload);
+        if (!isTargetSeries) {
+          dispatch(updateMovieRedux(savedItem));
+        }
+        notify("Data berhasil diperbarui!");
+      }
+      setApiConnected(true);
+
+      const updater = isTargetSeries ? setSeries : setMovies;
+      updater(prev => {
+        const exists = prev.some(x => String(x.id) === String(savedItem.id));
+        return exists ? prev.map(x => String(x.id) === String(savedItem.id) ? savedItem : x) : [savedItem, ...prev];
+      });
+    } catch (err) {
+      console.warn("MockAPI error saat simpan, menggunakan fallback lokal:", err.message);
+      const fallbackItem = { ...item, id: item.id || Date.now() };
+      if (!isTargetSeries) {
+        if (isNew) {
+          dispatch(addMovieRedux(fallbackItem));
+        } else {
+          dispatch(updateMovieRedux(fallbackItem));
+        }
+      }
+      const updater = isTargetSeries ? setSeries : setMovies;
+      updater(prev => {
+        const exists = prev.some(x => String(x.id) === String(fallbackItem.id));
+        return exists ? prev.map(x => String(x.id) === String(fallbackItem.id) ? fallbackItem : x) : [fallbackItem, ...prev];
+      });
+      notify("Data disimpan di lokal (MockAPI offline / belum terhubung).");
+    }
   };
-  const fav=id=>setFavorites(v=>v.includes(id)?v.filter(x=>x!==id):[...v,id]);
+
+  const remove=async (id)=>{
+    const isTargetSeries = isSavedPage
+      ? series.some(x => String(x.id) === String(id))
+      : (page === "series");
+
+    notify("Menghapus data...");
+
+    try {
+      if (isTargetSeries) {
+        await deleteSeries(id);
+      } else {
+        // 2. Delete: Gunakan fungsi Delete API (deleteData) dari folder services/api
+        await deleteData(id);
+        dispatch(deleteMovieRedux(id));
+      }
+      notify("Data berhasil dihapus!");
+      setApiConnected(true);
+    } catch (err) {
+      console.warn("MockAPI error saat hapus, fallback hapus lokal:", err.message);
+      if (!isTargetSeries) {
+        dispatch(deleteMovieRedux(id));
+      }
+      notify("Data dihapus dari tampilan lokal.");
+    } finally {
+      if (isSavedPage) {
+        if (series.some(x => String(x.id) === String(id))) {
+          setSeries(prev => prev.filter(x => String(x.id) !== String(id)));
+        } else {
+          setMovies(prev => prev.filter(x => String(x.id) !== String(id)));
+        }
+      } else {
+        setData(prev => prev.filter(x => String(x.id) !== String(id)));
+      }
+      setSelected(null);
+    }
+  };
+
+  const fav=id=>setFavorites(v=>v.some(f=>String(f)===String(id))?v.filter(x=>String(x)!==String(id)):[...v,id]);
 
   if(!logged)return <Auth onLogin={login}/>;
 
@@ -248,20 +427,39 @@ function App(){
     {!isSavedPage&&<Hero type={page} genre={genre} genres={genres} onGenre={setGenre} onManage={()=>setShowManage(v=>!v)} onPlay={()=>notify("Pemutar video demo siap dihubungkan.")}/>}
 
     <main className={isSavedPage?"content saved-page":"content"}>
-      {isSavedPage ? (
+      {loading ? (
+        <div className="api-loading-state">
+          <div className="api-spinner"></div>
+          <span>Menghubungkan & memuat data dari MockAPI...</span>
+        </div>
+      ) : isSavedPage ? (
         <section className="saved-section">
           <div className="saved-heading"><h1>Daftar Saya</h1><span>{savedItems.length} judul tersimpan</span></div>
           {savedItems.length ? (
             <div className="saved-grid">
-              {savedItems.map(item=><HoverCard key={item.id} item={item} onSelect={setSelected} onEdit={setEditing} onDelete={remove} favorite={favorites.includes(item.id)} onFavorite={fav}/>)}
+              {savedItems.map(item=><HoverCard key={item.id} item={item} onSelect={setSelected} onEdit={setEditing} onDelete={remove} favorite={favorites.some(f=>String(f)===String(item.id))} onFavorite={fav}/>)}
             </div>
           ) : <div className="empty-saved"><Bookmark size={28}/><strong>Daftar Saya masih kosong</strong><span>Tambahkan film atau series dengan tombol hati saat hover poster.</span></div>}
         </section>
       ) : (
         <>
           {showManage&&<div className="management management-float">
-            <div><strong>CRUD {page==="movie"?"Film":"Series"}</strong><span>Array object aktif: {data.length} data</span></div>
-            <div className="management-actions"><div className="mobile-search"><Search size={14}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari..."/></div><button className="primary" onClick={()=>setEditing({new:true})}><Plus size={15}/> Tambah Data</button></div>
+            <div>
+              <div style={{display:'flex', alignItems:'center', gap:8, marginBottom: 2}}>
+                <strong>CRUD {page==="movie"?"Film":"Series"}</strong>
+                <span className={`api-badge ${apiConnected ? "connected" : "offline"}`}>
+                  {apiConnected ? "MockAPI Terhubung" : "MockAPI Offline / Standby"}
+                </span>
+              </div>
+              <span>Data aktif: {data.length} judul</span>
+            </div>
+            <div className="management-actions">
+              <div className="mobile-search"><Search size={14}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari..."/></div>
+              <button type="button" className="sync-btn" onClick={handleSync} disabled={syncing} title="Upload 13 film & 10 series ke MockAPI">
+                <Database size={13}/> {syncing ? "Mengunggah..." : "Upload Seed ke MockAPI"}
+              </button>
+              <button className="primary" onClick={()=>setEditing({new:true})}><Plus size={15}/> Tambah Data</button>
+            </div>
           </div>}
 
           <Rail title={page==="movie"?"Melanjutkan Tonton Film":"Melanjutkan Tonton Series"} items={trending} onSelect={setSelected} onEdit={setEditing} onDelete={remove} favorites={favorites} onFavorite={fav}/>
@@ -270,7 +468,15 @@ function App(){
           <Rail title={page==="movie"?"Rilis Baru":"Series Trending"} items={newOnes} onSelect={setSelected} onEdit={setEditing} onDelete={remove} favorites={favorites} onFavorite={fav}/>
           <Rail title="Rilis Baru" items={filtered.slice().reverse().slice(0,5)} onSelect={setSelected} onEdit={setEditing} onDelete={remove} favorites={favorites} onFavorite={fav}/>
 
-          <section className="all-section homepage-crud-list"><div className="section-title"><h2>Semua {page==="movie"?"Film":"Series"}</h2><span>{filtered.length} judul</span></div><div className="all-grid">{filtered.map(item=><HoverCard key={item.id} item={item} onSelect={setSelected} onEdit={setEditing} onDelete={remove} favorite={favorites.includes(item.id)} onFavorite={fav}/>)}</div></section>
+          <ListView
+            items={filtered}
+            onSelect={setSelected}
+            onEdit={setEditing}
+            onDelete={remove}
+            favorites={favorites}
+            onFavorite={fav}
+            title={`Semua ${page==="movie"?"Film":"Series"}`}
+          />
         </>
       )}
     </main>
@@ -282,4 +488,8 @@ function App(){
   </div>
 }
 
-createRoot(document.getElementById("root")).render(<App/>);
+createRoot(document.getElementById("root")).render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
