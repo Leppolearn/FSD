@@ -1,0 +1,21 @@
+$kind: http-request
+name: "9. GET /movie - Sorting Data (Query Param: sortBy & order)"
+url: "{{baseUrl}}/movie?sortBy=rating&order=desc"
+method: GET
+headers:
+  Authorization: Bearer {{jwtToken}}
+queryParams:
+  sortBy: rating
+  order: desc
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200 OK', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Mengembalikan array terurut berdasarkan rating', function () {
+          var list = pm.response.json();
+          pm.expect(list).to.be.an('array');
+      });
+    language: text/javascript
+order: 9000

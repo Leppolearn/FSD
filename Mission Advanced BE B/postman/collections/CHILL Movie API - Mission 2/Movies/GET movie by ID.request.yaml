@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/movies/{{movieId}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('returns 200', () => pm.response.to.have.status(200));
+      pm.test('returns the created movie', () => pm.expect(pm.response.json().title).to.eql('Postman Test Movie'));
+    language: text/javascript
+order: 3000

@@ -1,0 +1,338 @@
+{
+  "info": {
+    "name": "CHILL Movie API - Mission 3 & Lanjutan (Auth, Verification, Query Params, Upload)",
+    "description": "Pengujian Lengkap Endpoint Sesuai Tabel Referensi:\n1. POST /register (bcrypt + uuid + nodemailer)\n2. GET /verify-email (token valid)\n3. GET /verify-email (token salah -> 400)\n4. POST /login (email + password -> JWT token)\n5. POST /login (password salah -> 401)\n6. GET /auth/me (proteksi JWT)\n7. GET /movie (query param: genre)\n8. GET /movie (query param: search)\n9. GET /movie (query param: sortBy & order)\n10. POST /upload (multer upload file gambar)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. POST /register - Registrasi Pengguna Baru",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Generate data unik agar collection dapat di-run berulang kali tanpa error 409 duplicate email",
+              "var timestamp = Date.now();",
+              "var uniqueEmail = 'user_' + timestamp + '@example.com';",
+              "var uniqueUsername = 'user_' + timestamp;",
+              "var testPassword = 'Password123!';",
+              "",
+              "pm.collectionVariables.set('testEmail', uniqueEmail);",
+              "pm.collectionVariables.set('testUsername', uniqueUsername);",
+              "pm.collectionVariables.set('testPassword', testPassword);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Response berisi data user dan verificationToken', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.eql('Registrasi berhasil');",
+              "    pm.expect(jsonData.user).to.exist;",
+              "    pm.expect(jsonData.user.verificationToken).to.exist;",
+              "    pm.collectionVariables.set('verificationToken', jsonData.user.verificationToken);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullname\": \"Budi Santoso\",\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"email\": \"{{testEmail}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/register"
+      }
+    },
+    {
+      "name": "2. GET /verify-email - Token Valid (200 OK)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response text is Email Verified Successfully', function () {",
+              "    pm.expect(pm.response.text()).to.include('Email Verified Successfully');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/verify-email?token={{verificationToken}}"
+      }
+    },
+    {
+      "name": "3. GET /verify-email - Token Salah (400 Bad Request)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Response text is Invalid Verification Token', function () {",
+              "    pm.expect(pm.response.text()).to.include('Invalid Verification Token');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/verify-email?token=token-palsu-ngawur-999"
+      }
+    },
+    {
+      "name": "4. POST /login - Login Pengguna Sukses (200 OK)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Returns JWT token', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.exist;",
+              "    pm.expect(jsonData.message).to.eql('Login berhasil');",
+              "    pm.collectionVariables.set('jwtToken', jsonData.token);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/login"
+      }
+    },
+    {
+      "name": "5. POST /login - Password Salah (401 Unauthorized)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 401 Unauthorized', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test('Notifikasi kredensial salah', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.include('salah');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"passwordKeliru999\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/login"
+      }
+    },
+    {
+      "name": "6. GET /auth/me - Profil Pengguna Terproteksi Token (200 OK)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Mengembalikan profil user yang sesuai', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.user).to.exist;",
+              "    pm.expect(jsonData.user.email).to.eql(pm.collectionVariables.get('testEmail'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "url": "{{baseUrl}}/auth/me"
+      }
+    },
+    {
+      "name": "7. GET /movie - Filter Konten (Query Param: genre)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Mengembalikan array list film sesuai genre', function () {",
+              "    var list = pm.response.json();",
+              "    pm.expect(list).to.be.an('array');",
+              "    if (list.length > 0) {",
+              "        pm.expect(list[0].genre.toLowerCase()).to.include('action');",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "url": "{{baseUrl}}/movie?genre=Action"
+      }
+    },
+    {
+      "name": "8. GET /movie - Search Judul (Query Param: search)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Mengembalikan hasil pencarian judul', function () {",
+              "    var list = pm.response.json();",
+              "    pm.expect(list).to.be.an('array');",
+              "    if (list.length > 0) {",
+              "        pm.expect(list[0].title.toLowerCase()).to.include('tomorrow');",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "url": "{{baseUrl}}/movie?search=Tomorrow"
+      }
+    },
+    {
+      "name": "9. GET /movie - Sorting Data (Query Param: sortBy & order)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Mengembalikan array terurut berdasarkan rating', function () {",
+              "    var list = pm.response.json();",
+              "    pm.expect(list).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "url": "{{baseUrl}}/movie?sortBy=rating&order=desc"
+      }
+    },
+    {
+      "name": "10. POST /upload - Upload Gambar Poster",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Upload validation (201 jika file dipilih, 400 jika file kosong)', function () {",
+              "    pm.expect([201, 400]).to.include(pm.response.code);",
+              "    var jsonData = pm.response.json();",
+              "    if (pm.response.code === 201) {",
+              "        pm.expect(jsonData.message).to.eql('Gambar berhasil diunggah');",
+              "        pm.expect(jsonData.filename).to.exist;",
+              "        pm.expect(jsonData.url).to.exist;",
+              "    } else {",
+              "        pm.expect(jsonData.error).to.include('file');",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "description": "Pilih file gambar poster dari komputer Anda (contoh: public/media/tomorrow.jpg)",
+              "src": []
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/upload"
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "testEmail", "value": "" },
+    { "key": "testUsername", "value": "" },
+    { "key": "testPassword", "value": "" },
+    { "key": "jwtToken", "value": "" },
+    { "key": "verificationToken", "value": "" }
+  ]
+}

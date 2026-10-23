@@ -1,0 +1,23 @@
+$kind: http-request
+name: "7. GET /movie - Filter Konten (Query Param: genre)"
+url: "{{baseUrl}}/movie?genre=Action"
+method: GET
+headers:
+  Authorization: Bearer {{jwtToken}}
+queryParams:
+  genre: Action
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200 OK', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Mengembalikan array list film sesuai genre', function () {
+          var list = pm.response.json();
+          pm.expect(list).to.be.an('array');
+          if (list.length > 0) {
+              pm.expect(list[0].genre.toLowerCase()).to.include('action');
+          }
+      });
+    language: text/javascript
+order: 7000

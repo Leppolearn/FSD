@@ -1,0 +1,42 @@
+$kind: http-request
+name: 1. POST /register - Registrasi Pengguna Baru
+url: "{{baseUrl}}/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "fullname": "Budi Santoso",
+      "username": "{{testUsername}}",
+      "password": "{{testPassword}}",
+      "email": "{{testEmail}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // Generate data unik agar collection dapat di-run berulang kali tanpa error 409 duplicate email
+      var timestamp = Date.now();
+      var uniqueEmail = 'user_' + timestamp + '@example.com';
+      var uniqueUsername = 'user_' + timestamp;
+      var testPassword = 'Password123!';
+
+      pm.collectionVariables.set('testEmail', uniqueEmail);
+      pm.collectionVariables.set('testUsername', uniqueUsername);
+      pm.collectionVariables.set('testPassword', testPassword);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 201 Created', function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test('Response berisi data user dan verificationToken', function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.message).to.eql('Registrasi berhasil');
+          pm.expect(jsonData.user).to.exist;
+          pm.expect(jsonData.user.verificationToken).to.exist;
+          pm.collectionVariables.set('verificationToken', jsonData.user.verificationToken);
+      });
+    language: text/javascript
+order: 1000

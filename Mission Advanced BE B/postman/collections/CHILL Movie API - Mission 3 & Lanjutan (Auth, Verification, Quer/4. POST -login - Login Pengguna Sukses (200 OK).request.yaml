@@ -1,0 +1,27 @@
+$kind: http-request
+name: 4. POST /login - Login Pengguna Sukses (200 OK)
+url: "{{baseUrl}}/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{testEmail}}",
+      "password": "{{testPassword}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200 OK', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Returns JWT token', function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.token).to.exist;
+          pm.expect(jsonData.message).to.eql('Login berhasil');
+          pm.collectionVariables.set('jwtToken', jsonData.token);
+      });
+    language: text/javascript
+order: 4000

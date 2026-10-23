@@ -1,0 +1,19 @@
+$kind: http-request
+name: 6. GET /auth/me - Profil Pengguna Terproteksi Token (200 OK)
+url: "{{baseUrl}}/auth/me"
+method: GET
+headers:
+  Authorization: Bearer {{jwtToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200 OK', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Mengembalikan profil user yang sesuai', function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.user).to.exist;
+          pm.expect(jsonData.user.email).to.eql(pm.collectionVariables.get('testEmail'));
+      });
+    language: text/javascript
+order: 6000

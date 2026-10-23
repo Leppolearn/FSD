@@ -1,0 +1,17 @@
+$kind: http-request
+name: 2. GET /verify-email - Token Valid (200 OK)
+url: "{{baseUrl}}/verify-email?token={{verificationToken}}"
+method: GET
+queryParams:
+  token: "{{verificationToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200 OK', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Response text is Email Verified Successfully', function () {
+          pm.expect(pm.response.text()).to.include('Email Verified Successfully');
+      });
+    language: text/javascript
+order: 2000

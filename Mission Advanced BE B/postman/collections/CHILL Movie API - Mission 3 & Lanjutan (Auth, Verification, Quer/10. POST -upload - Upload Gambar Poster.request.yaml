@@ -1,0 +1,29 @@
+$kind: http-request
+name: 10. POST /upload - Upload Gambar Poster
+url: "{{baseUrl}}/upload"
+method: POST
+headers:
+  Authorization: Bearer {{jwtToken}}
+body:
+  type: formdata
+  content:
+    - type: file
+      key: file
+      src: []
+      description: "Pilih file gambar poster dari komputer Anda (contoh: public/media/tomorrow.jpg)"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Upload validation (201 jika file dipilih, 400 jika file kosong)', function () {
+          pm.expect([201, 400]).to.include(pm.response.code);
+          var jsonData = pm.response.json();
+          if (pm.response.code === 201) {
+              pm.expect(jsonData.message).to.eql('Gambar berhasil diunggah');
+              pm.expect(jsonData.filename).to.exist;
+              pm.expect(jsonData.url).to.exist;
+          } else {
+              pm.expect(jsonData.error).to.include('file');
+          }
+      });
+    language: text/javascript
+order: 10000

@@ -1,0 +1,23 @@
+$kind: http-request
+name: "8. GET /movie - Search Judul (Query Param: search)"
+url: "{{baseUrl}}/movie?search=Tomorrow"
+method: GET
+headers:
+  Authorization: Bearer {{jwtToken}}
+queryParams:
+  search: Tomorrow
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200 OK', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Mengembalikan hasil pencarian judul', function () {
+          var list = pm.response.json();
+          pm.expect(list).to.be.an('array');
+          if (list.length > 0) {
+              pm.expect(list[0].title.toLowerCase()).to.include('tomorrow');
+          }
+      });
+    language: text/javascript
+order: 8000

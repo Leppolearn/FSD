@@ -1,0 +1,17 @@
+$kind: http-request
+name: 3. GET /verify-email - Token Salah (400 Bad Request)
+url: "{{baseUrl}}/verify-email?token=token-palsu-ngawur-999"
+method: GET
+queryParams:
+  token: token-palsu-ngawur-999
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 400 Bad Request', function () {
+          pm.response.to.have.status(400);
+      });
+      pm.test('Response text is Invalid Verification Token', function () {
+          pm.expect(pm.response.text()).to.include('Invalid Verification Token');
+      });
+    language: text/javascript
+order: 3000

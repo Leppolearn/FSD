@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/series/{{seriesId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "rating": 9
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('returns 200', () => pm.response.to.have.status(200));
+      pm.test('rating was updated', () => pm.expect(pm.response.json().rating).to.eql(9));
+    language: text/javascript
+order: 4000
